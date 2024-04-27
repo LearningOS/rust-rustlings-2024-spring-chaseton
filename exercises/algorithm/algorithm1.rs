@@ -2,13 +2,12 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
 
-#[derive(Debug)]
+#[derive(Debug,Clone,Copy)]
 struct Node<T> {
     val: T,
     next: Option<NonNull<Node<T>>>,
@@ -22,20 +21,20 @@ impl<T> Node<T> {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug,Clone,Copy)]
 struct LinkedList<T> {
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T:std::cmp::PartialOrd + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T:std::cmp::PartialOrd + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -73,40 +72,36 @@ impl<T> LinkedList<T> {
 	{
 		//TODO
         let mut result = LinkedList::new();
-        let mut a_ptr = list_a.start;
-        let mut b_ptr = list_b.start;
+        let mut a_current = list_a.start;
+        let mut b_current = list_b.start;
 
-        // 遍历两个链表，比较节点并添加到结果链表中
-        /*
-        while let (Some(a_node), Some(b_node)) = (a_ptr, b_ptr) {
-            let a_val = unsafe { (*a_node.as_ptr()).val };
-            let b_val = unsafe { (*b_node.as_ptr()).val };
+        while a_current.is_some() || b_current.is_some() {
+            let a_next_val = a_current.map(|ptr| unsafe { &(*ptr.as_ptr()).val });
+            let b_next_val = b_current.map(|ptr| unsafe { &(*ptr.as_ptr()).val });
 
-            // 将较小的节点添加到结果链表中
-            if a_val <= b_val {
-                result.add(a_val);
-                a_ptr = unsafe { (*a_node.as_ptr()).next };
-            } else {
-                result.add(b_val);
-                b_ptr = unsafe { (*b_node.as_ptr()).next };
+            match (a_next_val, b_next_val) {
+                (Some(a_val), Some(b_val)) => {
+                    if a_val <= b_val {
+                        result.add(a_val.clone());
+                        a_current = unsafe { (*a_current.unwrap().as_ptr()).next };
+                    } else {
+                        result.add(b_val.clone());
+                        b_current = unsafe { (*b_current.unwrap().as_ptr()).next };
+                    }
+                },
+                (Some(a_val), None) => {
+                    result.add(a_val.clone());
+                    a_current = unsafe { (*a_current.unwrap().as_ptr()).next };
+                },
+                (None, Some(b_val)) => {
+                    result.add(b_val.clone());
+                    b_current = unsafe { (*b_current.unwrap().as_ptr()).next };
+                },
+                (None, None) => break,
             }
         }
-        */
-
-        // 如果链表A还有剩余节点，添加到结果链表中
-        while let Some(a_node) = a_ptr {
-            result.add(unsafe { (*a_node.as_ptr()).val });
-            a_ptr = unsafe { (*a_node.as_ptr()).next };
-        }
-
-        // 如果链表B还有剩余节点，添加到结果链表中
-        while let Some(b_node) = b_ptr {
-            result.add(unsafe { (*b_node.as_ptr()).val });
-            b_ptr = unsafe { (*b_node.as_ptr()).next };
-        }
-
         result
-            /*
+           /* 
 		Self {
             length: 0,
             start: None,
